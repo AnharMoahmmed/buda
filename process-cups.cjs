@@ -29,14 +29,12 @@ async function createCleanCutout(flavor) {
     const r = data[idx * 4];
     const g = data[idx * 4 + 1];
     const b = data[idx * 4 + 2];
-    const diff1 = Math.abs(r - g);
-    const diff2 = Math.abs(r - b);
-    const diff3 = Math.abs(g - b);
-    const isNeutral = diff1 < 26 && diff2 < 26 && diff3 < 26;
-    return isNeutral && r > 215 && g > 215 && b > 215;
+    const maxDiff = Math.max(Math.abs(r - g), Math.abs(r - b), Math.abs(g - b));
+    // Studio backdrop is neutral and bright
+    return maxDiff < 20 && r > 210 && g > 210 && b > 210;
   }
 
-  // Push border pixels
+  // Push all border pixels
   for (let x = 0; x < width; x++) {
     const topIdx = 0 * width + x;
     if (isBg(topIdx)) { queue.push(topIdx); visited[topIdx] = 1; }
@@ -71,11 +69,9 @@ async function createCleanCutout(flavor) {
           const r = data[nIdx * 4];
           const g = data[nIdx * 4 + 1];
           const b = data[nIdx * 4 + 2];
-          const diff1 = Math.abs(r - g);
-          const diff2 = Math.abs(r - b);
-          const diff3 = Math.abs(g - b);
-          const isNeutral = diff1 < 28 && diff2 < 28 && diff3 < 28;
-          if (isNeutral && r > 200 && g > 200 && b > 200) {
+          const maxDiff = Math.max(Math.abs(r - g), Math.abs(r - b), Math.abs(g - b));
+          // Propagate into bright neutral studio background
+          if (maxDiff < 25 && r > 195 && g > 195 && b > 195) {
             visited[nIdx] = 1;
             queue.push(nIdx);
           }
@@ -91,45 +87,33 @@ async function createCleanCutout(flavor) {
       const b = data[i * 4 + 2];
       const brightness = (r + g + b) / 3;
 
-      if (brightness >= 246) {
+      if (brightness >= 225) {
+        // Pure background -> completely transparent (0 alpha)
         outputData[i * 4 + 3] = 0;
-      } else if (brightness >= 208) {
-        const factor = (246 - brightness) / 38;
-        outputData[i * 4 + 3] = Math.round(factor * 160);
+      } else if (brightness >= 195) {
+        // Very tight edge anti-aliasing (only within 30 brightness levels)
+        const factor = (225 - brightness) / 30; // 0 to 1
+        outputData[i * 4 + 3] = Math.round(factor * 255);
       } else {
-        outputData[i * 4 + 3] = 190;
+        outputData[i * 4 + 3] = 255;
       }
+    } else {
+      // Cup and ice cream content -> fully opaque
+      outputData[i * 4 + 3] = 255;
     }
   }
 
   await sharp(outputData, { raw: { width, height, channels: 4 } })
-    .png({ compressionLevel: 8 })
+    .png({ compressionLevel: 9 })
     .toFile(outputPath);
 
-  console.log(`Created cutout: ${flavor}-cup.png`);
-}
-
-async function createThumbnails() {
-  for (const flavor of FLAVORS) {
-    const inPath = path.join(__dirname, 'public', 'images', `${flavor}-cup.jpg`);
-    const outPath = path.join(__dirname, 'public', 'images', `thumb-${flavor}.jpg`);
-
-    // Crop just the top luscious ice cream scoop (centered upper portion)
-    await sharp(inPath)
-      .extract({ left: 240, top: 130, width: 540, height: 420 })
-      .resize(160, 160, { fit: 'cover' })
-      .jpeg({ quality: 90 })
-      .toFile(outPath);
-
-    console.log(`Created thumbnail: thumb-${flavor}.jpg`);
-  }
+  console.log(`Pristine cutout created: ${flavor}-cup.png`);
 }
 
 async function main() {
-  for (const flavor of FLAVORS) {
-    await createCleanCutout(flavor);
+  for (const f of FLAVORS) {
+    await createCleanCutout(f);
   }
-  await createThumbnails();
 }
 
 main().catch(console.error);

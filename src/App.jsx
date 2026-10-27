@@ -21,6 +21,7 @@ function BudaApp() {
   const { totalItems, setIsOpen: setCartOpen } = useCart();
   const [selectedFlavorModal, setSelectedFlavorModal] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [activeHeroFlavor, setActiveHeroFlavor] = useState(flavorsData[0]);
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -30,6 +31,12 @@ function BudaApp() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  React.useEffect(() => {
+    if (activeHeroFlavor?.pageBg) {
+      document.body.style.backgroundColor = activeHeroFlavor.pageBg;
+    }
+  }, [activeHeroFlavor]);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -37,12 +44,19 @@ function BudaApp() {
   const featuredFlavor = flavorsData.find((f) => f.id === 'chocolate') || flavorsData[0];
 
   return (
-    <div className="min-h-screen bg-[#E58B68] text-[#522518] selection:bg-[#522518] selection:text-[#FAF2E6] font-body relative overflow-x-hidden">
+    <motion.div
+      animate={{ backgroundColor: activeHeroFlavor?.pageBg || '#E58B68' }}
+      transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+      className="min-h-screen text-[#522518] selection:bg-[#522518] selection:text-[#FAF2E6] font-body relative overflow-x-hidden"
+    >
       {/* Navigation Header */}
       <Header />
 
       {/* Hero Section (Recreates Reference Design) */}
-      <HeroSection onOpenFlavorModal={(flavor) => setSelectedFlavorModal(flavor)} />
+      <HeroSection
+        onOpenFlavorModal={(flavor) => setSelectedFlavorModal(flavor)}
+        onActiveFlavorChange={(flavor) => setActiveHeroFlavor(flavor)}
+      />
 
       {/* Section A — Discover Our Flavors */}
       <FlavorsGrid onOpenFlavorModal={(flavor) => setSelectedFlavorModal(flavor)} />
@@ -120,7 +134,7 @@ function BudaApp() {
           </span>
         </motion.button>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

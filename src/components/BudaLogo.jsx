@@ -2,15 +2,18 @@ import React from 'react';
 
 export const BudaLogo = ({ className = "h-8", color = "currentColor", withSmile = true }) => {
   return (
-    <div className={`inline-flex items-center gap-2 select-none font-display font-bold tracking-tight ${className}`}>
-      {/* English Logo with signature smile arc */}
-      <span className="relative flex items-center text-[1.4em] leading-none">
+    <div
+      dir="ltr"
+      className={`inline-flex items-center gap-2 select-none font-display font-bold tracking-tight ${className}`}
+    >
+      {/* English Logo with signature smile arc - strictly LTR */}
+      <span className="relative inline-flex flex-row items-center text-[1.4em] leading-none" dir="ltr">
         <span>b</span>
         <span className="relative">
           <span>u</span>
           {withSmile && (
             <svg
-              className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-4 h-2"
+              className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-4 h-2 pointer-events-none"
               viewBox="0 0 20 10"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -31,7 +34,7 @@ export const BudaLogo = ({ className = "h-8", color = "currentColor", withSmile 
       <span className="opacity-40 text-[1.1em] font-light">|</span>
 
       {/* Arabic Logo */}
-      <span className="font-arabic text-[1.3em] font-extrabold leading-none pt-0.5">
+      <span className="font-arabic text-[1.3em] font-extrabold leading-none pt-0.5" dir="rtl">
         بوضة
       </span>
     </div>
