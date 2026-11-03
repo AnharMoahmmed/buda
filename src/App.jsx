@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { CartProvider, useCart } from './context/CartContext';
+
+// Storefront components
 import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
 import { FlavorsGrid } from './components/FlavorsGrid';
@@ -13,20 +16,27 @@ import { Footer } from './components/Footer';
 import { FlavorModal } from './components/FlavorModal';
 import { CartDrawer } from './components/CartDrawer';
 import { flavorsData } from './data/flavors';
-import { ShoppingBag, ArrowUp } from 'lucide-react';
+
+// Admin components & pages
+import AdminLayout from './admin/AdminLayout';
+import DashboardPage from './admin/pages/DashboardPage';
+import FlavorsPage from './admin/pages/FlavorsPage';
+import OrdersPage from './admin/pages/OrdersPage';
+import ReviewsPage from './admin/pages/ReviewsPage';
+import SettingsPage from './admin/pages/SettingsPage';
+
+import { ShoppingBag, ArrowUp, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-function BudaApp() {
-  const { lang, t, dir } = useLanguage();
+function BudaStorefront() {
+  const { lang } = useLanguage();
   const { totalItems, setIsOpen: setCartOpen } = useCart();
   const [selectedFlavorModal, setSelectedFlavorModal] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [activeHeroFlavor, setActiveHeroFlavor] = useState(flavorsData[0]);
 
   React.useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 400);
-    };
+    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -37,10 +47,7 @@ function BudaApp() {
     }
   }, [activeHeroFlavor]);
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
   const featuredFlavor = flavorsData.find((f) => f.id === 'chocolate') || flavorsData[0];
 
   return (
@@ -49,40 +56,22 @@ function BudaApp() {
       transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
       className="min-h-screen text-[#522518] selection:bg-[#522518] selection:text-[#FAF2E6] font-body relative overflow-x-hidden"
     >
-      {/* Navigation Header */}
       <Header />
-
-      {/* Hero Section (Recreates Reference Design) */}
       <HeroSection
         onOpenFlavorModal={(flavor) => setSelectedFlavorModal(flavor)}
         onActiveFlavorChange={(flavor) => setActiveHeroFlavor(flavor)}
       />
-
-      {/* Section A — Discover Our Flavors */}
       <FlavorsGrid onOpenFlavorModal={(flavor) => setSelectedFlavorModal(flavor)} />
-
-      {/* Section B — Our Story */}
       <OurStorySection />
-
-      {/* Section C — Why Buda? (Brand Values) */}
       <WhyBudaSection />
-
-      {/* Section D — Featured Product Showcase */}
       <FeaturedProductSection
         featuredFlavor={featuredFlavor}
         onOpenFlavorModal={(flavor) => setSelectedFlavorModal(flavor)}
       />
-
-      {/* Section E — Customer Reviews */}
       <ReviewsSection />
-
-      {/* Section F — Visit Us / Store & Contact */}
       <ContactSection />
-
-      {/* Footer */}
       <Footer />
 
-      {/* Flavor Details Quick View Modal */}
       {selectedFlavorModal && (
         <FlavorModal
           flavor={selectedFlavorModal}
@@ -90,12 +79,20 @@ function BudaApp() {
         />
       )}
 
-      {/* Order Bag Drawer */}
       <CartDrawer />
 
-      {/* Floating Bottom Action Buttons */}
+      {/* Floating Action Buttons */}
       <div className="fixed bottom-6 right-6 rtl:right-auto rtl:left-6 z-40 flex flex-col items-center gap-3">
-        {/* Scroll To Top Button */}
+        {/* Link to Admin Dashboard */}
+        <Link
+          to="/admin"
+          title="Open Admin Dashboard"
+          className="w-10 h-10 rounded-full bg-[#FAF2E6] text-[#522518] hover:bg-white shadow-xl flex items-center justify-center border border-[#522518]/20 transition-transform hover:scale-105"
+        >
+          <ShieldCheck className="w-5 h-5" />
+        </Link>
+
+        {/* Scroll To Top */}
         <AnimatePresence>
           {showScrollTop && (
             <motion.button
@@ -104,8 +101,7 @@ function BudaApp() {
               exit={{ opacity: 0, scale: 0.8 }}
               onClick={scrollToTop}
               type="button"
-              className="w-10 h-10 rounded-full bg-white/30 hover:bg-white text-white hover:text-[#522518] backdrop-blur-md border border-white/40 shadow-lg flex items-center justify-center transition-all cursor-pointer"
-              aria-label="Scroll to top"
+              className="w-10 h-10 rounded-full bg-white/30 hover:bg-white text-white hover:text-[#522518] backdrop-blur-md border border-white/40 shadow-lg flex items-center justify-center cursor-pointer"
             >
               <ArrowUp className="w-5 h-5" />
             </motion.button>
@@ -119,7 +115,6 @@ function BudaApp() {
           onClick={() => setCartOpen(true)}
           type="button"
           className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-[#522518] hover:bg-[#38150C] text-[#FAF2E6] font-bold text-sm shadow-2xl border-2 border-[#FAF2E6]/30 cursor-pointer"
-          aria-label="Open Order Bag"
         >
           <div className="relative">
             <ShoppingBag className="w-5 h-5" />
@@ -142,7 +137,24 @@ export default function App() {
   return (
     <LanguageProvider>
       <CartProvider>
-        <BudaApp />
+        <BrowserRouter>
+          <Routes>
+            {/* Public Storefront Route */}
+            <Route path="/" element={<BudaStorefront />} />
+
+            {/* Admin Nested Routes */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<DashboardPage />} />
+              <Route path="flavors" element={<FlavorsPage />} />
+              <Route path="orders" element={<OrdersPage />} />
+              <Route path="reviews" element={<ReviewsPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
+
+            {/* Catch-all redirect back to Home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
       </CartProvider>
     </LanguageProvider>
   );
