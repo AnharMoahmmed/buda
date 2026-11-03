@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   TrendingUp,
@@ -14,6 +14,8 @@ import {
   MoreHorizontal,
   Calendar,
   Eye,
+  ArrowLeft,
+  Home,
 } from 'lucide-react';
 
 const statCards = [
@@ -100,24 +102,39 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-display font-bold">Dashboard</h1>
           <p className={`text-sm ${textSecondary} mt-0.5`}>Welcome back! Here's what's happening with buda today.</p>
         </div>
-        <div className={`flex items-center gap-2 ${cardBg} rounded-xl border ${borderColor} p-1`}>
-          {[
-            { key: '24h', label: '24h' },
-            { key: '7d', label: '7 days' },
-            { key: '30d', label: '30 days' },
-          ].map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTimeRange(t.key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                timeRange === t.key
-                  ? 'bg-gradient-to-r from-[#E58B68] to-[#D47450] text-white shadow-sm'
-                  : `${textSecondary} hover:bg-[#F5E6D8]`
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
+
+        {/* Action Buttons: Back to Home + Time Range Selector */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Back to Home Button */}
+          <Link
+            to="/"
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold ${cardBg} border ${borderColor} hover:border-[#E58B68] hover:text-[#E58B68] shadow-xs transition-all duration-200 cursor-pointer`}
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-[#E58B68]" />
+            <Home className="w-3.5 h-3.5" />
+            <span>Go to Website</span>
+          </Link>
+
+          {/* Time Range Filter */}
+          <div className={`flex items-center gap-1.5 ${cardBg} rounded-xl border ${borderColor} p-1`}>
+            {[
+              { key: '24h', label: '24h' },
+              { key: '7d', label: '7 days' },
+              { key: '30d', label: '30 days' },
+            ].map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTimeRange(t.key)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  timeRange === t.key
+                    ? 'bg-gradient-to-r from-[#E58B68] to-[#D47450] text-white shadow-sm'
+                    : `${textSecondary} hover:bg-[#F5E6D8] ${darkMode ? 'hover:bg-[#3E2A1F]' : ''}`
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
       </motion.div>
 
@@ -224,9 +241,9 @@ export default function DashboardPage() {
             <h3 className="font-semibold">Recent Orders</h3>
             <p className={`text-xs ${textSecondary} mt-0.5`}>Latest WhatsApp orders</p>
           </div>
-          <button className="text-xs font-medium text-[#E58B68] hover:text-[#D47450] transition-colors cursor-pointer">
+          <Link to="/admin/orders" className="text-xs font-medium text-[#E58B68] hover:text-[#D47450] transition-colors cursor-pointer">
             View All →
-          </button>
+          </Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
